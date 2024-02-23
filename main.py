@@ -1,42 +1,58 @@
-# This is a sample Python script.
 import json
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-Flashcards = "flashcard_sets.txt"
-my_dict = {
-    "Name": input("Name"),
-    "Age": input("Age"),
-    "Place": input("Place")
-}
+def create_dictionary():
+    data = {'name': input("Enter name: ")}
 
-file = open("flashcard_sets.txt", "w")
-json.dump(my_dict, file)
+    terms = {}
+    term_counter = 1
 
-file = open("flashcard_sets.txt", "r")
-dictionary = dict(json.load(file))
-print (dictionary)
-print (dictionary["Name"])
+    while True:
+        term_key = f'term{term_counter}'
+        answer_key = f'answer{term_counter}'
 
-# import json
-#
-# # Writing dictionary to a file
-# my_dict = {
-#     'name': 'John',
-#     'age': 25,
-#     'city': 'New York'
-# }
-#
-# file_path = "my_dict.txt"
-# with open(file_path, 'w') as file:
-#     json.dump(my_dict, file)
-#
-# # Reading dictionary from a file
-# with open(file_path, 'r') as file:
-#     # Use json.load() to parse the content into a dictionary
-#     dict_from_file = json.load(file)
-#
-# print(dict_from_file["name"])
+        term_value = input(f"Enter term for {term_key} (or 'done' to finish): ")
+        if term_value.lower() == 'done':
+            break
+
+        answer_value = input(f"Enter answer for {answer_key}: ")
+
+        terms[term_key] = {'term': term_value, 'answer': answer_value}
+        term_counter += 1
+
+    data.update(terms)
+    return data
+
+def save_to_file(flashcard_sets, filename):
+    with open(filename, 'w') as file:
+        json.dump(flashcard_sets, file)
+
+def load_flashcard_sets(filename):
+    try:
+        with open(filename, 'r') as file:
+            content = file.read()
+            return json.loads(content) if content else []
+    except json.decoder.JSONDecodeError:
+        return []
+
+def main():
+    filename = 'flashcard_sets.txt'
+
+    flashcard_sets = load_flashcard_sets(filename)
+
+    while True:
+        user_input = input("Do you want to create a new dictionary? (yes/no): ")
+        if user_input.lower() != 'yes':
+            break
+
+        dictionary = create_dictionary()
+        flashcard_sets.append(dictionary)
+        save_to_file(flashcard_sets, filename)
+        print("Dictionary saved successfully!")
+    for i in flashcard_sets:
+        print (i.get("name"))
+
+if __name__ == "__main__":
+    main()
 
 
 
@@ -44,3 +60,11 @@ print (dictionary["Name"])
 
 
 
+
+# Code plan
+# List of dictionary names, website has menu to choose which set of flashcards you want to do
+
+
+# Flashcard sets themselves
+# Each set is a dictionary, each flashcard is a sub dictionary with 3 attributes - Side1, Side2, learn_score. Each set also has a name
+# Automate production: first create a dictionary with a 'name' value. Assign the name input to the name value then allow input of the rest of the values, creating dictionaries with them as it happens
