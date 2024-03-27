@@ -1,5 +1,2 @@
-
-{"name": "Test", "Number of cards": 0}
-{"name": "Test", "Number of cards": 0}
-{"name": "Test", "Number of cards": 1, "Flashcard 1": {"Side1": "Test1", "Side2": "Test2"}}
-{"name": "Test", "Number of cards": 2, "Flashcard 1": {"Side1": "Test1", "Side2": "Test2"}, "Flashcard 2": {"Side1": "Test3", "Side2": "Test4"}}
+{"Test"
+}
