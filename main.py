@@ -1,43 +1,77 @@
 import json
-from flask import Flask, request, render_template, redirect, url_for, flash, session
+from flask import Flask, request, render_template, redirect, url_for
 from forms import NewQuizForm, NewTermsForm
 
-
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+
 
 def save_to_file(item_to_save, filename):
-    with open (filename, 'w') as file:
-        file.write ("{")
     with open(filename, 'a') as file:
-        list_of_lines = store_file_as_list(filename)
-        for i in list_of_lines:
-            json.dump(i, file)
-            file.write('\n')
-        file.write('}')
-
-
-def append_to_list_of_sets(item_to_save, filename):
-    with open(filename, 'w') as file:
+        file.write ("\n")
         json.dump(item_to_save, file)
-#
-def load_last_line_of_file(filename):
+
+def store_file_as_list_of_lines(filename):
     with open(filename, 'r') as file:
         lines = file.readlines()
-        last_line = lines[-1].strip()
-        last_dict = eval(last_line)
+        return lines
+
+def write_to_file(new_set, filename):
+    lines = store_file_as_list_of_lines(filename)
+    flashcard_sets = lines[1:-1]
+    with open (filename, 'w') as file:
+        file.write("{")
+        file.write("\n")
+        for line in flashcard_sets:
+            file.write(line)
+        file.write(new_set + ",")
+        file.write("\n")
+        file.write("}")
+
+def load_whole_file_as_dict(filename):
+    with open (filename, 'r') as file:
+        file_string = file.read()
+        file_dict = eval(file_string)
+        return file_dict
+
+
+
+
+
+
+
+
+
+
+# def save_new_flashcard_set(item_to_save, filename):
+#     with open (filename 'a') as file:
+
+
+def load_last_line_of_file_as_dict(filename):
+    with open(filename, 'r') as file:
+        lines = file.readlines()
+        last_line = lines[-2].strip()
+        last_dict = "{" + last_line + "}"
+        last_dict = eval(last_dict)
     return last_dict
 
-def get_dictionary(filename):
-    with open (filename, 'r') as file:
-        file_value = file.read()
-        string_of_sets = json.loads(file_value)
-        return string_of_sets
+def load_last_line_of_file_as_str(filename):
+    with open(filename, 'r') as file:
+        lines = file.readlines()
+        last_line = lines[-2].strip()
+        return last_line
 
-def store_file_as_list(filename):
-    with open (filename, 'r') as file:
-        list_of_lines = file.readlines
-        return list_of_lines
+def update_dictionary(replacement_item, filename):
+    list_of_lines = store_file_as_list_of_lines(filename)
+    with open(filename, "w") as file:
+        file.write("{")
+        file.write("\n")
+        lines_without_last_dict = list_of_lines[1:-2]
+        for line in lines_without_last_dict:
+            file.write(line)
+        file.write(replacement_item + ",")
+        file.write("\n")
+        file.write("}")
+
 
 @app.route('/')
 def initialise():
@@ -46,8 +80,6 @@ def initialise():
 def QuizPage():
     return render_template("QuizPage.html")
 
-
-# Code that initialises a new set of flashcards and gives it a name
 @app.route('/NewQuiz', methods = ["GET", "POST"])
 def NewQuiz():
     form = NewQuizForm(request.form)
@@ -55,38 +87,48 @@ def NewQuiz():
 
     if request.method == "POST":
         name = request.form.get("Name")
-        dict_of_sets = get_dictionary("flashcard_sets.txt")
-        dict_of_sets[name] = {"Number of cards": 0}
-        save_to_file(name, "list_of_flashcard_sets.txt")
+        New_Flashcard_Set = "'"+ name + "'" + ":{'Number of Cards': 0}"
+        write_to_file(New_Flashcard_Set, "flashcard_sets.txt")
 
-        save_to_file(dict_of_sets, "flashcard_sets.txt")
-        # save_to_file("flashcard_sets.txt")
         return redirect(url_for('NewTerms'))
-
 
     return render_template("NewQuiz.html", form=form, Name=name)
 
-
-# Code that adds new terms to the set of flashcards that was just named
 @app.route('/NewTerms', methods = ["GET", "POST"])
 def NewTerms():
     form = NewTermsForm(request.form)
-    # current_dict = read_file("flashcard_sets.txt")
-    # current_dict = current_dict[name]["Number of cards"]
-    # side1 = request.form.get("Side1")
-    # side2 = request.form.get("Side2")
-    # if side1 is not None and side2 is not None:
-    #     number_of_cards = number_of_cards + 1
-    #     number_of_flashcard = f"Flashcard {number_of_cards}"
-    #     flashcard = {"Number of cards": number_of_cards, number_of_flashcard: {"Side1": side1, "Side2": side2}}
-    #     current_dict.update(flashcard)
-    #     save_to_file(current_dict, "flashcard_sets.txt")
+    side1 = request.form.get("Side1")
+    side2 = request.form.get("Side2")
+    last_line_of_file = load_last_line_of_file_as_str("flashcard_sets.txt")
+    # print(last_line_of_file)
+    list_of_elements = last_line_of_file.split("'")
+    # print (list_of_elements)
+    name = list_of_elements[1]
+    # print (name)
+    whole_dict = load_whole_file_as_dict("flashcard_sets.txt")
+    current_dict = whole_dict[name]
+    number_of_cards = current_dict["Number of Cards"]
+    print (number_of_cards)
+    if side1 is not None and side2 is not None:
+        print (side1 + side2)
+        number_of_cards = number_of_cards + 1
+        number_of_flashcard = f"Flashcard {number_of_cards}"
+        print (number_of_flashcard)
+        flashcard = {
+            str(number_of_flashcard): {
+                'Side1': side1,
+                'Side2': side2
+            }
+        }
+        print(flashcard)
+        current_dict["Number of Cards"] = number_of_cards
+        current_dict.update(flashcard)
+        dict_as_str = str(current_dict)
+        whole_dict_as_str = "'" + name + "'" + ":" + dict_as_str
+        update_dictionary(whole_dict_as_str, "flashcard_sets.txt")
+        return redirect(url_for("NewTerms"))
+
     return render_template("NewTerms.html", form=form)
-
-
-
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)
