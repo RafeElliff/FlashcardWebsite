@@ -1,6 +1,6 @@
 import json
 from flask import Flask, request, render_template, redirect, url_for
-from forms import NewQuizForm, NewTermsForm
+from forms import NewQuizForm, NewTermsForm, ChooseCardSet
 
 app = Flask(__name__)
 
@@ -15,7 +15,7 @@ def store_file_as_list_of_lines(filename):
         lines = file.readlines()
         return lines
 
-def write_to_file(new_set, filename):
+def write_dict_to_file(new_set, filename):
     lines = store_file_as_list_of_lines(filename)
     flashcard_sets = lines[1:-1]
     with open (filename, 'w') as file:
@@ -32,18 +32,6 @@ def load_whole_file_as_dict(filename):
         file_string = file.read()
         file_dict = eval(file_string)
         return file_dict
-
-
-
-
-
-
-
-
-
-
-# def save_new_flashcard_set(item_to_save, filename):
-#     with open (filename 'a') as file:
 
 
 def load_last_line_of_file_as_dict(filename):
@@ -72,13 +60,31 @@ def update_dictionary(replacement_item, filename):
         file.write("\n")
         file.write("}")
 
+def write_name_of_set_to_file(name, filename):
+    with open (filename, "a") as file:
+        file.write(name)
+        file.write("\n")
 
 @app.route('/')
 def initialise():
     return render_template("index.html")
-@app.route('/QuizPage')
-def QuizPage():
-    return render_template("QuizPage.html")
+@app.route('/ChooseQuiz', methods = ["GET", "POST"])
+def ChooseQuiz():
+    form = ChooseCardSet(request.form)
+    choice = None
+
+    if request.method == "POST":
+        choice = str(request.form.get("Choice"))
+        choice = choice.strip()
+        whole_dict = load_whole_file_as_dict("flashcard_sets.txt")
+        print (choice)
+        print (whole_dict)
+        chosen_set = whole_dict[choice]
+        save_to_file(chosen_set, "current_flashcard_set.txt")
+        print (chosen_set)
+        return redirect(url_for("Quiz"))
+
+    return render_template("ChooseQuiz.html", form=form)
 
 @app.route('/NewQuiz', methods = ["GET", "POST"])
 def NewQuiz():
@@ -88,7 +94,10 @@ def NewQuiz():
     if request.method == "POST":
         name = request.form.get("Name")
         New_Flashcard_Set = "'"+ name + "'" + ":{'Number of Cards': 0}"
-        write_to_file(New_Flashcard_Set, "flashcard_sets.txt")
+        write_dict_to_file(New_Flashcard_Set, "flashcard_sets.txt")
+        write_name_of_set_to_file(name, "list_of_flashcard_sets.txt")
+
+
 
         return redirect(url_for('NewTerms'))
 
@@ -117,7 +126,8 @@ def NewTerms():
         flashcard = {
             str(number_of_flashcard): {
                 'Side1': side1,
-                'Side2': side2
+                'Side2': side2,
+                'Learn Score': 0
             }
         }
         print(flashcard)
@@ -129,6 +139,10 @@ def NewTerms():
         return redirect(url_for("NewTerms"))
 
     return render_template("NewTerms.html", form=form)
+
+@app.route('/Quiz', methods = ["GET", "POST"])
+def Quiz():
+    return render_template("Quiz.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
