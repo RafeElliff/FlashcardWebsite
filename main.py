@@ -1,6 +1,6 @@
 import json
 from flask import Flask, request, render_template, redirect, url_for
-from forms import NewQuizForm, NewTermsForm, ChooseCardSet
+from forms import NewQuizForm, NewTermsForm, ChooseCardSet, ChooseQuizType
 
 app = Flask(__name__)
 
@@ -142,7 +142,21 @@ def NewTerms():
 
 @app.route('/Quiz', methods = ["GET", "POST"])
 def Quiz():
-    return render_template("Quiz.html")
+    form = ChooseQuizType(request.form)
+    choice = request.form.get("Choice")
+    if choice == "Multiple Choice":
+        return redirect(url_for("MultipleChoiceQuiz"))
+    elif choice == "Type In Answers":
+        return redirect(url_for("TypeInAnswersQuiz"))
+    return render_template("Quiz.html", form=form)
+
+@app.route('/MultipleChoiceQuiz', methods = ["GET", "POST"])
+def MultipleChoiceQuiz():
+    return render_template(("MultipleChoiceQuiz.html"))
+
+@app.route('/TypeInAnswersQuiz', methods=["GET", "POST"])
+def TypeInAnswersQuiz():
+    return render_template(("TypeInAnswersQuiz.html"))
 
 if __name__ == "__main__":
     app.run(debug=True)

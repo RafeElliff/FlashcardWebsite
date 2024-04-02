@@ -20,3 +20,7 @@ list_of_flashcard_sets = store_file_as_list_of_lines("list_of_flashcard_sets.txt
 class ChooseCardSet(Form):
     Choice = SelectField("Flashcard Set", choices=list_of_flashcard_sets)
     Submit = SubmitField('Submit')
+
+class ChooseQuizType(Form):
+    Choice = SelectField("Quiz Type", choices=["Type in Answers", "Multiple Choice"])
+    Submit = SubmitField('Submit')
