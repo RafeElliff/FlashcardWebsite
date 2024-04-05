@@ -1,24 +1,34 @@
 import json
+import random
 from flask import Flask, request, render_template, redirect, url_for
 from forms import NewQuizForm, NewTermsForm, ChooseCardSet, ChooseQuizType
 
 app = Flask(__name__)
 
-
+#Appends a given item to a given file on a new line
 def save_to_file(item_to_save, filename):
     with open(filename, 'a') as file:
-        file.write ("\n")
+        file.write("\n")
         json.dump(item_to_save, file)
 
+
+#Stores a file as a list of the lines in it
 def store_file_as_list_of_lines(filename):
     with open(filename, 'r') as file:
         lines = file.readlines()
         return lines
 
+#Clears the contents of a file
+def erase_file(filename):
+    with open(filename, 'w') as file:
+        file.close()
+
+
+#Keeps all dictionaries that have previously been written to a file, then adds a new given one with proper formatting
 def write_dict_to_file(new_set, filename):
     lines = store_file_as_list_of_lines(filename)
     flashcard_sets = lines[1:-1]
-    with open (filename, 'w') as file:
+    with open(filename, 'w') as file:
         file.write("{")
         file.write("\n")
         for line in flashcard_sets:
@@ -27,13 +37,14 @@ def write_dict_to_file(new_set, filename):
         file.write("\n")
         file.write("}")
 
+#Loads a whole file and formats it as a dictionary
 def load_whole_file_as_dict(filename):
-    with open (filename, 'r') as file:
+    with open(filename, 'r') as file:
         file_string = file.read()
         file_dict = eval(file_string)
         return file_dict
 
-
+#Unused function that loads a file as a dictionary
 def load_last_line_of_file_as_dict(filename):
     with open(filename, 'r') as file:
         lines = file.readlines()
@@ -42,12 +53,15 @@ def load_last_line_of_file_as_dict(filename):
         last_dict = eval(last_dict)
     return last_dict
 
+#Returns the last (real, ignoring closing brackets etc) line of the file
 def load_last_line_of_file_as_str(filename):
     with open(filename, 'r') as file:
         lines = file.readlines()
         last_line = lines[-2].strip()
         return last_line
 
+
+#Replaces the most recent dictionary with a file
 def update_dictionary(replacement_item, filename):
     list_of_lines = store_file_as_list_of_lines(filename)
     with open(filename, "w") as file:
@@ -60,15 +74,29 @@ def update_dictionary(replacement_item, filename):
         file.write("\n")
         file.write("}")
 
-def write_name_of_set_to_file(name, filename):
-    with open (filename, "a") as file:
-        file.write(name)
-        file.write("\n")
+#Writes the dictionary chosen in ChooseQuiz to a file, with each card on a new line
+def get_flashcards_from_dict():
+    with open("current_flashcard_set.txt", 'r') as file:
+        dict_of_card_set = eval(file.read())
+        del dict_of_card_set["Number of Cards"]
+        str_of_dict = str(dict_of_card_set)
+        list_of_cards = str_of_dict.split("}")
+        list_of_cards = list_of_cards[:-2]
+    with open("list_of_flashcards_in_current_set.txt", "a") as file:
+        for card in list_of_cards:
+            card = card + "}"
+            if card[:2] == ", ":
+                card = card[2:]
+                card = "{" + card
+            file.write(card +"\n")
+
 
 @app.route('/')
 def initialise():
     return render_template("index.html")
-@app.route('/ChooseQuiz', methods = ["GET", "POST"])
+
+
+@app.route('/ChooseQuiz', methods=["GET", "POST"])
 def ChooseQuiz():
     form = ChooseCardSet(request.form)
     choice = None
@@ -77,52 +105,50 @@ def ChooseQuiz():
         choice = str(request.form.get("Choice"))
         choice = choice.strip()
         whole_dict = load_whole_file_as_dict("flashcard_sets.txt")
-        print (choice)
-        print (whole_dict)
+        print(choice)
+        print(whole_dict)
         chosen_set = whole_dict[choice]
         save_to_file(chosen_set, "current_flashcard_set.txt")
-        print (chosen_set)
+        print(chosen_set)
+        get_flashcards_from_dict()
         return redirect(url_for("Quiz"))
 
     return render_template("ChooseQuiz.html", form=form)
 
-@app.route('/NewQuiz', methods = ["GET", "POST"])
+
+@app.route('/NewQuiz', methods=["GET", "POST"])
 def NewQuiz():
     form = NewQuizForm(request.form)
     name = None
 
     if request.method == "POST":
         name = request.form.get("Name")
-        New_Flashcard_Set = "'"+ name + "'" + ":{'Number of Cards': 0}"
+        New_Flashcard_Set = "'" + name + "'" + ":{'Number of Cards': 0}"
         write_dict_to_file(New_Flashcard_Set, "flashcard_sets.txt")
-        write_name_of_set_to_file(name, "list_of_flashcard_sets.txt")
-
-
+        save_to_file(name, "list_of_flashcard_sets.txt")
 
         return redirect(url_for('NewTerms'))
 
     return render_template("NewQuiz.html", form=form, Name=name)
 
-@app.route('/NewTerms', methods = ["GET", "POST"])
+
+@app.route('/NewTerms', methods=["GET", "POST"])
 def NewTerms():
     form = NewTermsForm(request.form)
     side1 = request.form.get("Side1")
     side2 = request.form.get("Side2")
     last_line_of_file = load_last_line_of_file_as_str("flashcard_sets.txt")
-    # print(last_line_of_file)
     list_of_elements = last_line_of_file.split("'")
-    # print (list_of_elements)
     name = list_of_elements[1]
-    # print (name)
     whole_dict = load_whole_file_as_dict("flashcard_sets.txt")
     current_dict = whole_dict[name]
     number_of_cards = current_dict["Number of Cards"]
-    print (number_of_cards)
+    print(number_of_cards)
     if side1 is not None and side2 is not None:
-        print (side1 + side2)
+        print(side1 + side2)
         number_of_cards = number_of_cards + 1
         number_of_flashcard = f"Flashcard {number_of_cards}"
-        print (number_of_flashcard)
+        print(number_of_flashcard)
         flashcard = {
             str(number_of_flashcard): {
                 'Side1': side1,
@@ -140,32 +166,39 @@ def NewTerms():
 
     return render_template("NewTerms.html", form=form)
 
-@app.route('/Quiz', methods = ["GET", "POST"])
+
+@app.route('/Quiz', methods=["GET", "POST"])
 def Quiz():
     form = ChooseQuizType(request.form)
     choice = request.form.get("Choice")
+    print(choice)
     if choice == "Multiple Choice":
         return redirect(url_for("MultipleChoiceQuiz"))
-    elif choice == "Type In Answers":
+    elif choice == "Type in Answers":
         return redirect(url_for("TypeInAnswersQuiz"))
     return render_template("Quiz.html", form=form)
 
-@app.route('/MultipleChoiceQuiz', methods = ["GET", "POST"])
+@app.route('/TypeInAnswersQuiz', methods=["GET", "POST"])
+def TypeInAnswersQuiz():
+    list_of_cards = store_file_as_list_of_lines("list_of_flashcards_in_current_set.txt")
+    print (random.choice(list_of_cards))
+
+    return render_template(("TypeInAnswersQuiz.html"))
+@app.route('/MultipleChoiceQuiz', methods=["GET", "POST"])
 def MultipleChoiceQuiz():
     return render_template(("MultipleChoiceQuiz.html"))
 
-@app.route('/TypeInAnswersQuiz', methods=["GET", "POST"])
-def TypeInAnswersQuiz():
-    return render_template(("TypeInAnswersQuiz.html"))
+
+
+
+
+def clear_session_variables():
+    erase_file("current_flashcard_set.txt")
+    erase_file("list_of_flashcards_in_current_set.txt")
 
 if __name__ == "__main__":
+    clear_session_variables()
     app.run(debug=True)
-
-
-
-
-
-
 
 # Code plan
 # List of dictionary names, website has menu to choose which set of flashcards you want to do
