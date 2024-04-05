@@ -111,11 +111,8 @@ def choose_quiz():
         choice = str(request.form.get("Choice"))
         choice = choice.strip()
         whole_dict = load_whole_file_as_dict("flashcard_sets.txt")
-        print(choice)
-        print(whole_dict)
         chosen_set = whole_dict[choice]
         save_to_file(chosen_set, "current_flashcard_set.txt")
-        print(chosen_set)
         get_flashcards_from_dict()
         return redirect(url_for("quiz"))
 
@@ -149,12 +146,9 @@ def new_terms():
     whole_dict = load_whole_file_as_dict("flashcard_sets.txt")
     current_dict = whole_dict[name]
     number_of_cards = current_dict["Number of Cards"]
-    print(number_of_cards)
     if side1 is not None and side2 is not None:
-        print(side1 + side2)
         number_of_cards = number_of_cards + 1
         number_of_flashcard = f"Flashcard {number_of_cards}"
-        print(number_of_flashcard)
         flashcard = {
             str(number_of_flashcard): {
                 'Side1': side1,
@@ -162,7 +156,6 @@ def new_terms():
                 'Learn Score': 0
             }
         }
-        print(flashcard)
         current_dict["Number of Cards"] = number_of_cards
         current_dict.update(flashcard)
         dict_as_str = str(current_dict)
@@ -177,7 +170,6 @@ def new_terms():
 def quiz():
     form = ChooseQuizType(request.form)
     choice = request.form.get("Choice")
-    print(choice)
     if choice == "Multiple Choice":
         return redirect(url_for("multiple-choice-quiz"))
     elif choice == "Type in Answers":
@@ -188,7 +180,6 @@ def quiz():
 @app.route('/type-in-answers-quiz', methods=["GET", "POST"])
 def type_in_answers_quiz():
     list_of_cards = store_file_as_list_of_lines("list_of_flashcards_in_current_set.txt")
-    print(random.choice(list_of_cards))
 
     return render_template(("type-in-answers-quiz.html"))
 
