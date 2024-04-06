@@ -47,17 +47,6 @@ def load_whole_file_as_dict(filename):
         file_dict = eval(file_string)
         return file_dict
 
-
-# Unused function that loads a file as a dictionary
-def load_last_line_of_file_as_dict(filename):
-    with open(filename, 'r') as file:
-        lines = file.readlines()
-        last_line = lines[-2].strip()
-        last_dict = "{" + last_line + "}"
-        last_dict = eval(last_dict)
-    return last_dict
-
-
 # Returns the last (real, ignoring closing brackets etc) line of the file
 def load_last_line_of_file_as_str(filename):
     with open(filename, 'r') as file:
@@ -66,7 +55,7 @@ def load_last_line_of_file_as_str(filename):
         return last_line
 
 
-# Replaces the most recent dictionary with a file
+# Replaces the most recent dictionary with a different dictionary
 def update_dictionary(replacement_item, filename):
     list_of_lines = store_file_as_list_of_lines(filename)
     with open(filename, "w") as file:
@@ -180,6 +169,7 @@ def quiz():
 @app.route('/type-in-answers-quiz', methods=["GET", "POST"])
 def type_in_answers_quiz():
     list_of_cards = store_file_as_list_of_lines("list_of_flashcards_in_current_set.txt")
+    # save_to_file()
 
     return render_template(("type-in-answers-quiz.html"))
 
