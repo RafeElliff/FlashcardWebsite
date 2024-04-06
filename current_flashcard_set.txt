@@ -1,2 +1,0 @@
-
-{"Number of Cards": 2, "Flashcard 1": {"Side1": "Test5", "Side2": "Test6", "Learn Score": 0}, "Flashcard 2": {"Side1": "Test7", "Side2": "Test8", "Learn Score": 0}}

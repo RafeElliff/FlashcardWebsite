@@ -119,7 +119,7 @@ def new_quiz():
         write_dict_to_file(New_Flashcard_Set, "flashcard_sets.txt")
         save_to_file(name, "list_of_flashcard_sets.txt")
 
-        return redirect(url_for('new-terms'))
+        return redirect(url_for('new_terms'))
 
     return render_template("new-quiz.html", form=form, Name=name)
 
@@ -150,7 +150,7 @@ def new_terms():
         dict_as_str = str(current_dict)
         whole_dict_as_str = "'" + name + "'" + ":" + dict_as_str
         update_dictionary(whole_dict_as_str, "flashcard_sets.txt")
-        return redirect(url_for("new-terms"))
+        return redirect(url_for("new_terms"))
 
     return render_template("new-terms.html", form=form)
 
@@ -160,9 +160,9 @@ def quiz():
     form = ChooseQuizType(request.form)
     choice = request.form.get("Choice")
     if choice == "Multiple Choice":
-        return redirect(url_for("multiple-choice-quiz"))
+        return redirect(url_for("multiple_choice_quiz"))
     elif choice == "Type in Answers":
-        return redirect(url_for("type-in-answers-quiz"))
+        return redirect(url_for("type_in_answers_quiz"))
     return render_template("quiz.html", form=form)
 
 
@@ -171,12 +171,12 @@ def type_in_answers_quiz():
     list_of_cards = store_file_as_list_of_lines("list_of_flashcards_in_current_set.txt")
     # save_to_file()
 
-    return render_template(("type-in-answers-quiz.html"))
+    return render_template("type-in-answers-quiz.html")
 
 
 @app.route('/multiple-choice-quiz', methods=["GET", "POST"])
 def multiple_choice_quiz():
-    return render_template(("multiple-choice-quiz.html"))
+    return render_template("multiple-choice-quiz.html")
 
 
 def clear_session_variables():
