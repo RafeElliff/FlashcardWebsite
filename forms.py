@@ -12,8 +12,8 @@ class NewQuizForm(Form):
     Submit = SubmitField('Submit')
 
 class NewTermsForm(Form):
-    Side1 = StringField('Side 1 (Term)')
-    Side2 = StringField('Side 2 (Definition)')
+    Term = StringField('Side 1 (Term)')
+    Definition = StringField('Side 2 (Definition)')
     Submit = SubmitField('Submit')
 
 list_of_flashcard_sets = store_file_as_list_of_lines("list_of_flashcard_sets.txt")
@@ -23,4 +23,8 @@ class ChooseCardSet(Form):
 
 class ChooseQuizType(Form):
     Choice = SelectField("Quiz Type", choices=["Type in Answers", "Multiple Choice"])
+    Submit = SubmitField('Submit')
+
+class AnswerTypedQuestion(Form):
+    Answer = StringField('Answer')
     Submit = SubmitField('Submit')

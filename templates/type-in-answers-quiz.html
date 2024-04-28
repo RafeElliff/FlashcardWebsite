@@ -5,9 +5,20 @@
     <title>Title</title>
 </head>
 <body>
-<form>
 
-</form>
+{%if term%}
+{{term}}
+        <form method = "POST", action = "/type-in-answers-quiz">
+            {{form.Answer.label}}
+            {{form.Answer}}
+            {{form.Submit}}
+        </form>
+{%endif%}
+
+{%if message%}
+{{message}}
+{%endif%}
+
 
 </body>
 </html>

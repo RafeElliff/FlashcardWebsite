@@ -1,17 +1,21 @@
 import json
 import random
 from flask import Flask, request, render_template, redirect, url_for
-from forms import NewQuizForm, NewTermsForm, ChooseCardSet, ChooseQuizType
+from forms import NewQuizForm, NewTermsForm, ChooseCardSet, ChooseQuizType, AnswerTypedQuestion
 
 app = Flask(__name__)
 
 
+# Replaces everything in a file with a given item
+def overwrite_file(item_to_save, filename):
+    with open (filename, 'w') as file:
+        for item in item_to_save:
+            file.write(item)
 # Appends a given item to a given file on a new line
 def save_to_file(item_to_save, filename):
     with open(filename, 'a') as file:
         file.write("\n")
         json.dump(item_to_save, file)
-
 
 # Stores a file as a list of the lines in it
 def store_file_as_list_of_lines(filename):
@@ -83,7 +87,7 @@ def get_flashcards_from_dict():
             if card[:2] == ", ":
                 card = card[2:]
                 card = "{" + card
-            file.write(card + "\n")
+            file.write(card + "}" + "\n")
 
 
 @app.route('/')
@@ -127,21 +131,21 @@ def new_quiz():
 @app.route('/new-terms', methods=["GET", "POST"])
 def new_terms():
     form = NewTermsForm(request.form)
-    side1 = request.form.get("Side1")
-    side2 = request.form.get("Side2")
+    term = request.form.get("term")
+    definition = request.form.get("definition")
     last_line_of_file = load_last_line_of_file_as_str("flashcard_sets.txt")
     list_of_elements = last_line_of_file.split("'")
     name = list_of_elements[1]
     whole_dict = load_whole_file_as_dict("flashcard_sets.txt")
     current_dict = whole_dict[name]
     number_of_cards = current_dict["Number of Cards"]
-    if side1 is not None and side2 is not None:
+    if term is not None and definition is not None:
         number_of_cards = number_of_cards + 1
-        number_of_flashcard = f"Flashcard {number_of_cards}"
+        number_of_flashcard = f"Flashcard_{number_of_cards}"
         flashcard = {
             str(number_of_flashcard): {
-                'Side1': side1,
-                'Side2': side2,
+                'Term': term,
+                'Definition': definition,
                 'Learn Score': 0
             }
         }
@@ -168,10 +172,41 @@ def quiz():
 
 @app.route('/type-in-answers-quiz', methods=["GET", "POST"])
 def type_in_answers_quiz():
-    list_of_cards = store_file_as_list_of_lines("list_of_flashcards_in_current_set.txt")
-    # save_to_file()
+    form = AnswerTypedQuestion(request.form)
+    term = None
+    message = None
+    list_of_cards = store_file_as_list_of_lines("list_of_flashcards_in_current_set.txt") # stores all the flashcards as items in a list
 
-    return render_template("type-in-answers-quiz.html")
+    # list_of_cards = store_file_as_list_of_lines("current_flashcard_set.txt")
+    list_of_flashcard_ids = []
+    for number in range(0, len(list_of_cards)): # Creates a list of numbers relating to the
+        list_of_flashcard_ids.append(number)
+    random.shuffle(list_of_flashcard_ids) # shuffles the items in the list
+
+    print(list_of_flashcard_ids)
+    for card in list_of_flashcard_ids:
+        index_of_card = f"Flashcard_{card+1}"
+        card_as_dict = eval(list_of_cards[card])
+        final_card = (card_as_dict[index_of_card])
+        print(final_card)
+        term = final_card["Term"]
+        definition = final_card["Definition"]
+        answer = request.form.get("Answer")
+        print (f"answer is {answer}")
+        if definition == answer:
+            message = "Correct"
+        elif answer is not None:
+            message = "Wrong"
+        else:
+            message = None
+        del list_of_cards[card]
+        overwrite_file(list_of_cards, "list_of_flashcards_in_current_set.txt")
+
+        return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
+    return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
+
+# English for code: stores all the flashcards as items in a list
+# stores
 
 
 @app.route('/multiple-choice-quiz', methods=["GET", "POST"])
