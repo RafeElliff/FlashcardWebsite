@@ -10,12 +10,13 @@ app = Flask(__name__)
 def overwrite_file(item_to_save, filename):
     with open (filename, 'w') as file:
         for item in item_to_save:
-            file.write(item)
+            file.write(str(item))
+            file.write("\n")
 # Appends a given item to a given file on a new line
 def save_to_file(item_to_save, filename):
     with open(filename, 'a') as file:
-        file.write("\n")
         json.dump(item_to_save, file)
+        file.write("\n")
 
 # Stores a file as a list of the lines in it
 def store_file_as_list_of_lines(filename):
@@ -107,6 +108,13 @@ def choose_quiz():
         chosen_set = whole_dict[choice]
         save_to_file(chosen_set, "current_flashcard_set.txt")
         get_flashcards_from_dict()
+        list_of_cards = store_file_as_list_of_lines("list_of_flashcards_in_current_set.txt")
+        list_of_card_ids = []
+        for item in range(0, len(list_of_cards)):
+            list_of_card_ids.append(item)
+        random.shuffle(list_of_card_ids)
+        save_to_file(list_of_card_ids, "session_variables.txt")
+        save_to_file(None, "session_variables.txt")
         return redirect(url_for("quiz"))
 
     return render_template("choose-quiz.html", form=form)
@@ -178,29 +186,55 @@ def type_in_answers_quiz():
     list_of_cards = store_file_as_list_of_lines("list_of_flashcards_in_current_set.txt") # stores all the flashcards as items in a list
 
     # list_of_cards = store_file_as_list_of_lines("current_flashcard_set.txt")
-    list_of_flashcard_ids = []
-    for number in range(0, len(list_of_cards)): # Creates a list of numbers relating to the
-        list_of_flashcard_ids.append(number)
-    random.shuffle(list_of_flashcard_ids) # shuffles the items in the list
+    list_of_lines = store_file_as_list_of_lines("session_variables.txt")
+    list_of_flashcard_ids = eval(list_of_lines[0])
 
-    print(list_of_flashcard_ids)
-    for card in list_of_flashcard_ids:
-        index_of_card = f"Flashcard_{card+1}"
-        card_as_dict = eval(list_of_cards[card])
-        final_card = (card_as_dict[index_of_card])
-        print(final_card)
+
+
+    # print(list_of_flashcard_ids)
+
+    for num in list_of_flashcard_ids:
+        card = list_of_cards[num]
+        # print(card)
+        temp_list = card.split(":", 1)  # Split at the first colon only
+        # print(temp_list)
+        card = ":".join(temp_list[1:])
+        final_card = card.strip()
+        final_card = eval(final_card[:-1])  # Slice to remove the last character
         term = final_card["Term"]
-        definition = final_card["Definition"]
+        definition = list_of_lines[1]
+        definition = str(definition).strip()
+        if definition is not None:
+            definition = definition.strip()
+        next_definition = final_card["Definition"]
+        next_definition = str(next_definition).strip()
+        if next_definition is not None:
+            next_definition = next_definition.strip()
         answer = request.form.get("Answer")
-        print (f"answer is {answer}")
+        if answer is not None:
+            answer = answer.strip()
+        #before first is submitted, definition value is stored in previous_definition, which is stored in list_of_lines[1], current_definition is none
+#
+# after first is submitted, if answer = previous definition then correct, else not. previous definition is replaced with current_definition, then code continues
+#
+#
+
+
+        print(f"answer is {definition}")
+        print(f"answer given is {answer}")
+        print(f"next answer is{next_definition}")
         if definition == answer:
             message = "Correct"
         elif answer is not None:
             message = "Wrong"
         else:
             message = None
-        del list_of_cards[card]
-        overwrite_file(list_of_cards, "list_of_flashcards_in_current_set.txt")
+        # print(list_of_lines)
+        # print(list_of_flashcard_ids)
+        list_of_lines[0] = list_of_flashcard_ids[1:]
+        list_of_lines[1] = next_definition
+        # print (list_of_lines)
+        overwrite_file(list_of_lines, "session_variables.txt")
 
         return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
     return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
@@ -217,7 +251,7 @@ def multiple_choice_quiz():
 def clear_session_variables():
     erase_file("current_flashcard_set.txt")
     erase_file("list_of_flashcards_in_current_set.txt")
-
+    erase_file("session_variables.txt")
 
 if __name__ == "__main__":
     clear_session_variables()
