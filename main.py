@@ -188,40 +188,56 @@ def type_in_answers_quiz():
     list_of_lines = store_file_as_list_of_lines("session_variables.txt")
     list_of_flashcard_ids = eval(list_of_lines[0])
 
+    if list_of_flashcard_ids:
+        for num in list_of_flashcard_ids:
+            card = list_of_cards[num]
+            temp_list = card.split(":", 1)  # Split at the first colon only
+            card = ":".join(temp_list[1:])
+            final_card = card.strip()
+            final_card = eval(final_card[:-1])  # Slice to remove the last character
+            term = final_card["Term"]
+            definition = list_of_lines[1]
+            if definition is not None:
+                definition = definition.strip()
+            next_definition = final_card["Definition"]
+            if next_definition is not None:
+                next_definition = next_definition.strip()
+            answer = request.form.get("Answer")
+            if answer is not None:
+                answer = answer.strip()
 
-    for num in list_of_flashcard_ids:
-        card = list_of_cards[num]
-        temp_list = card.split(":", 1)  # Split at the first colon only
-        card = ":".join(temp_list[1:])
-        final_card = card.strip()
-        final_card = eval(final_card[:-1])  # Slice to remove the last character
-        term = final_card["Term"]
+
+            print(f"answer is {definition}")
+            print(f"answer given is {answer}")
+            print(f"next answer is{next_definition}")
+            if definition == answer:
+                message = "Correct"
+            elif answer is not None:
+                message = "Wrong"
+            else:
+                message = None
+            list_of_lines[0] = list_of_flashcard_ids[1:]
+            list_of_lines[1] = next_definition
+
+            overwrite_file(list_of_lines, "session_variables.txt")
+            return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
+
+    elif not list_of_flashcard_ids:
         definition = list_of_lines[1]
-        definition = str(definition).strip()
         if definition is not None:
             definition = definition.strip()
-        next_definition = final_card["Definition"]
-        next_definition = str(next_definition).strip()
-        if next_definition is not None:
-            next_definition = next_definition.strip()
         answer = request.form.get("Answer")
         if answer is not None:
             answer = answer.strip()
 
-
-        print(f"answer is {definition}")
-        print(f"answer given is {answer}")
-        print(f"next answer is{next_definition}")
         if definition == answer:
-            message = "Correct"
+            message = "Correct. Flashcard set finished"
         elif answer is not None:
-            message = "Wrong"
+            message = "Wrong. Flashcard set finished"
         else:
-            message = None
-        list_of_lines[0] = list_of_flashcard_ids[1:]
-        list_of_lines[1] = next_definition
+            message = "Flashcard set finished"
 
-        overwrite_file(list_of_lines, "session_variables.txt")
+
 
         return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
     return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
