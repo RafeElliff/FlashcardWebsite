@@ -1,6 +1,0 @@
-[]
-Test8
-{'Flashcard_2': {'Term': 'Test7', 'Definition': 'Test8', 'Learn Score': 0}}
-
-
-

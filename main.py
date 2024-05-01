@@ -232,17 +232,24 @@ def type_in_answers_quiz():
                 final_card_to_change["Learn Score"] = final_learn_score
                 temp_list_of_card_to_change[1] = str(final_card_to_change)
                 card_to_change = ":".join(temp_list_of_card_to_change)
+                card_to_change = card_to_change + "}"
 
                 print(card_to_change)
             list_of_lines[0] = list_of_flashcard_ids[1:]
             list_of_lines[1] = next_definition
-            # list_of_lines[2] = card
+            list_of_lines[2] = card_to_change
 
             form.Answer.data = None
             overwrite_file(list_of_lines, "session_variables.txt")
             return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
 
     elif not list_of_flashcard_ids:
+        if card_to_change is not None:
+            temp_list_of_card_to_change = card_to_change.split(":", 1)
+            final_card_to_change = temp_list_of_card_to_change[1]
+            final_card_to_change = eval(final_card_to_change[:-1])
+            current_learn_score = final_card_to_change["Learn Score"]
+
         definition = list_of_lines[1]
         if definition is not None:
             definition = definition.strip()
@@ -251,15 +258,30 @@ def type_in_answers_quiz():
             answer = answer.strip()
 
         if definition == answer:
-            message = "Correct. Flashcard set finished"
+            message = "Correct"
+            final_learn_score = current_learn_score + 1
         elif answer is not None:
-            message = f"Wrong. Correct answer is {definition} Flashcard set finished"
+            message = f"Wrong, answer is {definition}"
+            if current_learn_score > 0:
+                final_learn_score = current_learn_score - 1
+            else:
+                final_learn_score = current_learn_score
         else:
-            message = "Flashcard set finished"
+            message = None
 
 
+        if card_to_change is not None:
+            final_card_to_change["Learn Score"] = final_learn_score
+            temp_list_of_card_to_change[1] = str(final_card_to_change)
+            card_to_change = ":".join(temp_list_of_card_to_change)
+            card_to_change = card_to_change + "}"
+            print(card_to_change)
 
+        form.Answer.data = None
+        list_of_lines[2] = card_to_change
         return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
+    return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
+
     return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
 
 
