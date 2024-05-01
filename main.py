@@ -238,6 +238,7 @@ def type_in_answers_quiz():
             list_of_lines[1] = next_definition
             # list_of_lines[2] = card
 
+            form.Answer.data = None
             overwrite_file(list_of_lines, "session_variables.txt")
             return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
 
