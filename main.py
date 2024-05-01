@@ -5,22 +5,17 @@ from forms import NewQuizForm, NewTermsForm, ChooseCardSet, ChooseQuizType, Answ
 
 app = Flask(__name__)
 
-
 # Replaces everything in a file with a given item
 def overwrite_file(item_to_save, filename):
     with open (filename, 'w') as file:
         for item in item_to_save:
-            file.write(str(item).strip())
+            file.write(str(item))
             file.write("\n")
 # Appends a given item to a given file on a new line
 def save_to_file(item_to_save, filename):
     with open(filename, 'a') as file:
-        if item_to_save is not None:
-            json.dump(item_to_save, file)
-            file.write("\n")
-        else:
-            file.write("None")
-            file.write("\n")
+        json.dump(item_to_save, file)
+        file.write("\n")
 
 # Stores a file as a list of the lines in it
 def store_file_as_list_of_lines(filename):
@@ -183,54 +178,35 @@ def quiz():
     return render_template("quiz.html", form=form)
 
 
-# def feedback(definition, answer, flashcard):
-#     flashcard = eval(flashcard)
-#     current_learn_score = flashcard["Learn Score"]
-#     if definition == answer:
-#         message = "Correct"
-#         new_learn_score = current_learn_score + 1
-#     elif answer is not None:
-#         message = f"Wrong, the correct answer was {definition}"
-#         if current_learn_score > 0:
-#             new_learn_score = current_learn_score - 1
-#     else:
-#         message = None
-#         new_learn_score = current_learn_score
-#     flashcard["Learn Score"] = new_learn_score
-#     return message
-
 @app.route('/type-in-answers-quiz', methods=["GET", "POST"])
 def type_in_answers_quiz():
     form = AnswerTypedQuestion(request.form)
     term = None
     message = None
+    card_to_change = None
     list_of_cards = store_file_as_list_of_lines("list_of_flashcards_in_current_set.txt") # stores all the flashcards as items in a list
 
     list_of_lines = store_file_as_list_of_lines("session_variables.txt")
+    if list_of_lines[2].strip("\n") != 'null':
+        card_to_change = list_of_lines[2].strip("\n")
+        print(card_to_change)
     list_of_flashcard_ids = eval(list_of_lines[0])
-    old_num = eval(list_of_lines[2].strip("\n"))
-    flashcard_to_change = None
-    final_card_to_change = None
-    if old_num is not None:
-        flashcard_to_change = eval(list_of_cards[int(old_num)])
-        print("test")
-        print(flashcard_to_change)
 
     if list_of_flashcard_ids:
         for num in list_of_flashcard_ids:
-            print(list_of_cards[num])
             card = list_of_cards[num]
+            list_of_lines[2] = card
             temp_list = card.split(":", 1)  # Split at the first colon only
-            card_id = temp_list[0]
-            card = temp_list[1]
+            card = ":".join(temp_list[1:])
             final_card = card.strip()
             final_card = eval(final_card[:-1])  # Slice to remove the last character
-            if flashcard_to_change:
-                temp_list = flashcard_to_change.split(":", 1)  # Split at the first colon only
-                final_card_to_change = card.strip()
-                final_card_to_change = eval(final_card[:-1])
             term = final_card["Term"]
             definition = list_of_lines[1]
+            if card_to_change is not None:
+                temp_list_of_card_to_change = card_to_change.split(":", 1)
+                final_card_to_change = temp_list_of_card_to_change[1]
+                final_card_to_change = eval(final_card_to_change[:-1])
+                current_learn_score = final_card_to_change["Learn Score"]
             if definition is not None:
                 definition = definition.strip()
             next_definition = final_card["Definition"]
@@ -240,40 +216,28 @@ def type_in_answers_quiz():
             if answer is not None:
                 answer = answer.strip()
 
-
-            print(f"answer is {definition}")
-            print(f"answer given is {answer}")
-            print(f"next answer is{next_definition}")
-            print(final_card)
-            print (final_card["Learn Score"])
-            if final_card_to_change is not None:
-                print (f"tente{final_card_to_change}")
-                current_learn_score = final_card_to_change["Learn Score"]
-            if answer is not None:
-                if definition == answer:
-                    message = "Correct"
-                    new_learn_score = current_learn_score + 1
+            if definition == answer:
+                message = "Correct"
+                final_learn_score = current_learn_score + 1
+            elif answer is not None:
+                message = f"Wrong, answer is {definition}"
+                if current_learn_score > 0:
+                    final_learn_score = current_learn_score - 1
                 else:
-                    message = f"Wrong, the correct answer was {definition}"
-                    if current_learn_score > 0:
-                        new_learn_score = current_learn_score - 1
+                    final_learn_score = current_learn_score
             else:
                 message = None
-                # new_learn_score = current_learn_score
-            if final_card_to_change is not None:
-                final_card_to_change["Learn Score"] = new_learn_score
-                print (f"flashcard {final_card_to_change}")
 
+            if card_to_change is not None:
+                final_card_to_change["Learn Score"] = final_learn_score
+                temp_list_of_card_to_change[1] = str(final_card_to_change)
+                card_to_change = ":".join(temp_list_of_card_to_change)
+
+                print(card_to_change)
             list_of_lines[0] = list_of_flashcard_ids[1:]
             list_of_lines[1] = next_definition
-            list_of_lines[2] = num
+            # list_of_lines[2] = card
 
-            list_of_cards[num] = str(card_id) + ":" + str(final_card) + "}"
-            print (list_of_cards[num])
-            # print (list_of_cards)
-
-            # {'Flashcard_1': {'Term': 'Test5', 'Definition': 'Test6', 'Learn Score': 0}}
-            overwrite_file(list_of_cards, "list_of_flashcards_in_current_set.txt")
             overwrite_file(list_of_lines, "session_variables.txt")
             return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
 
@@ -288,10 +252,9 @@ def type_in_answers_quiz():
         if definition == answer:
             message = "Correct. Flashcard set finished"
         elif answer is not None:
-            message = "Wrong. Flashcard set finished"
+            message = f"Wrong. Correct answer is {definition} Flashcard set finished"
         else:
             message = "Flashcard set finished"
-
 
 
 
@@ -313,10 +276,6 @@ if __name__ == "__main__":
     clear_session_variables()
     app.run(debug=True)
 
-# Code plan
-# List of dictionary names, website has menu to choose which set of flashcards you want to do
 
 
-# Flashcard sets themselves
-# Each set is a dictionary, each flashcard is a sub dictionary with 3 attributes - Side1, Side2, learn_score. Each set also has a name
-# Automate production: first create a dictionary with a 'name' value. Assign the name input to the name value then allow input of the rest of the values, creating dictionaries with them as it happens
+
