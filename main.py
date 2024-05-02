@@ -6,6 +6,9 @@ from forms import NewQuizForm, NewTermsForm, ChooseCardSet, ChooseQuizType, Answ
 app = Flask(__name__)
 
 # Replaces everything in a file with a given item
+def read_file(filename):
+        with open (filename, 'r') as file:
+            return file.read()
 def overwrite_file(item_to_save, filename):
     with open (filename, 'w') as file:
         for item in item_to_save:
@@ -89,9 +92,8 @@ def get_flashcards_from_dict():
                 card = "{" + card
             file.write(card + "}" + "\n")
 
-
 @app.route('/')
-def initialise():
+def index():
     return render_template("index.html")
 
 
@@ -103,6 +105,7 @@ def choose_quiz():
     if request.method == "POST":
         choice = str(request.form.get("Choice"))
         choice = choice.strip()
+        choice = choice.strip("\n")
         whole_dict = load_whole_file_as_dict("flashcard_sets.txt")
         chosen_set = whole_dict[choice]
         save_to_file(chosen_set, "current_flashcard_set.txt")
@@ -115,6 +118,7 @@ def choose_quiz():
         save_to_file(list_of_card_ids, "session_variables.txt")
         save_to_file(None, "session_variables.txt")
         save_to_file(None, "session_variables.txt")
+        save_to_file(choice, "session_variables.txt")
         return redirect(url_for("quiz"))
 
     return render_template("choose-quiz.html", form=form)
@@ -195,7 +199,7 @@ def type_in_answers_quiz():
     if list_of_flashcard_ids:
         for num in list_of_flashcard_ids:
             card = list_of_cards[num]
-            list_of_lines[2] = card
+            list_of_lines[2] = card.strip("\n")
             temp_list = card.split(":", 1)  # Split at the first colon only
             card = ":".join(temp_list[1:])
             final_card = card.strip()
@@ -233,11 +237,10 @@ def type_in_answers_quiz():
                 temp_list_of_card_to_change[1] = str(final_card_to_change)
                 card_to_change = ":".join(temp_list_of_card_to_change)
                 card_to_change = card_to_change + "}"
-
+                save_to_file(card_to_change, "changed_cards.txt")
                 print(card_to_change)
             list_of_lines[0] = list_of_flashcard_ids[1:]
             list_of_lines[1] = next_definition
-            list_of_lines[2] = card_to_change
 
             form.Answer.data = None
             overwrite_file(list_of_lines, "session_variables.txt")
@@ -276,15 +279,48 @@ def type_in_answers_quiz():
             card_to_change = ":".join(temp_list_of_card_to_change)
             card_to_change = card_to_change + "}"
             print(card_to_change)
+            save_to_file(card_to_change, "changed_cards.txt")
 
         form.Answer.data = None
-        list_of_lines[2] = card_to_change
         return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
     return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
 
-    return render_template("type-in-answers-quiz.html", form=form, term=term, message=message)
 
+@app.route('/save-progress')
+def save_progress():
+    card_sets = eval(read_file("flashcard_sets.txt").strip())
+    print(f"card set is {card_sets}")
+    changes = store_file_as_list_of_lines("changed_cards.txt")
+    print(f"changes is  {changes}")
+    name_of_card_set = store_file_as_list_of_lines("session_variables.txt")[3]
+    name_of_card_set = name_of_card_set.strip("\n")
+    name_of_card_set = name_of_card_set.strip("'")
+    print(f"name card set is {name_of_card_set}")
+    for change in changes:
+        change = change.strip("\n")
+        change = change[2:-2]
+        print(change)
+        parts_of_card = change.split(":", 1)
+        print(parts_of_card)
+        name = parts_of_card[0]
+        change = parts_of_card[1]
+        print("\n")
+        print(name_of_card_set)
+        name_of_card_set = name_of_card_set.strip('"')
+        print(name)
+        name = name.strip("'")
+        print(change)
+        change = change.strip('"')
+        change = change.strip("'")
+        change = eval(change)
+        card_sets[name_of_card_set][name] = change
 
+        print (f"name is {name}")
+        print (change)
+    print(f"card set is {card_sets}")
+    erase_file("flashcard_sets.txt")
+    save_to_file(card_sets, "flashcard_sets.txt")
+    return redirect(url_for("index"))
 @app.route('/multiple-choice-quiz', methods=["GET", "POST"])
 def multiple_choice_quiz():
     return render_template("multiple-choice-quiz.html")
@@ -294,6 +330,7 @@ def clear_session_variables():
     erase_file("current_flashcard_set.txt")
     erase_file("list_of_flashcards_in_current_set.txt")
     erase_file("session_variables.txt")
+    erase_file("changed_cards.txt")
 
 if __name__ == "__main__":
     clear_session_variables()

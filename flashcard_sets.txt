@@ -1,3 +1,1 @@
-{
-'Test4':{'Number of Cards': 2, 'Flashcard_1': {'Term': 'Test5', 'Definition': 'Test6', 'Learn Score': 0}, 'Flashcard_2': {'Term': 'Test7', 'Definition': 'Test8', 'Learn Score': 0}},
-}
+{"Test4": {"Number of Cards": 2, "Flashcard_1": {"Term": "Test5", "Definition": "Test6", "Learn Score": 1}, "Flashcard_2": {"Term": "Test7", "Definition": "Test8", "Learn Score": 3}}}
