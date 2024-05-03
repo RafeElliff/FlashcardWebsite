@@ -9,14 +9,19 @@
 {%if term%}
 {{term}}
         <form method = "POST", action = "/type-in-answers-quiz">
-            {{form.Answer.label}}
-            {{form.Answer}}
-            {{form.Submit}}
+            {{answer_form.Answer.label}}
+            {{answer_form.Answer}}
+            {{answer_form.Submit}}
         </form>
 {%endif%}
 
 {%if message%}
 {{message}}
+        <form method = "POST", action = "/change-answers-quiz">
+            {{change_form.Change.label}}
+            {{change_form.Change}}
+            {{change_form.Submit}}
+        </form>
 {%endif%}
 
 <br> <a href = "/save-progress"> Finish study session</a> </br>

@@ -28,3 +28,7 @@ class ChooseQuizType(Form):
 class AnswerTypedQuestion(Form):
     Answer = StringField('Answer')
     Submit = SubmitField('Submit')
+
+class ChangeForm(Form):
+    Change = SelectField("Change Marking", choices = ["I was right", "I was wrong"])
+    Submit = SubmitField('Submit')

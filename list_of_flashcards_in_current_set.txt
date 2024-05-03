@@ -1,2 +1,2 @@
 {'Flashcard_1': {'Term': 'Test5', 'Definition': 'Test6', 'Learn Score': 2}}
-{'Flashcard_2': {'Term': 'Test7', 'Definition': 'Test8', 'Learn Score': 2}}
+{'Flashcard_2': {'Term': 'Test7', 'Definition': 'Test8', 'Learn Score': 4}}
