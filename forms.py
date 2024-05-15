@@ -30,5 +30,5 @@ class AnswerTypedQuestion(Form):
     Submit = SubmitField('Submit')
 
 class ChangeForm(Form):
-    Change = SelectField("Change Marking", choices = ["I was right", "I was wrong"])
+    Change = SelectField("Change Marking", choices = ["I was right"])
     Submit = SubmitField('Submit')

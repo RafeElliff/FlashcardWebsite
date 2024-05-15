@@ -2,7 +2,16 @@ import json
 import random
 from flask import Flask, request, render_template, redirect, url_for
 from forms import NewQuizForm, NewTermsForm, ChooseCardSet, ChooseQuizType, AnswerTypedQuestion, ChangeForm
+import inspect
+
+
 app = Flask(__name__)
+
+
+#prints the line number of the code
+def print_line_number():
+    caller_frame = inspect.currentframe().f_back
+    print(f"This is line {caller_frame.f_lineno}")
 
 # Replaces everything in a file with a given item
 def read_file(filename):
@@ -132,7 +141,9 @@ def new_quiz():
         name = request.form.get("Name")
         New_Flashcard_Set = "'" + name + "'" + ":{'Number of Cards': 0}"
         write_dict_to_file(New_Flashcard_Set, "flashcard_sets.txt")
-        save_to_file(name, "list_of_flashcard_sets.txt")
+        with open("list_of_flashcard_sets.txt", 'a') as file:
+            file.write(name)
+            file.write("\n")
 
         return redirect(url_for('new_terms'))
 
@@ -142,8 +153,8 @@ def new_quiz():
 @app.route('/new-terms', methods=["GET", "POST"])
 def new_terms():
     form = NewTermsForm(request.form)
-    term = request.form.get("term")
-    definition = request.form.get("definition")
+    term = request.form.get("Term")
+    definition = request.form.get("Definition")
     last_line_of_file = load_last_line_of_file_as_str("flashcard_sets.txt")
     list_of_elements = last_line_of_file.split("'")
     name = list_of_elements[1]
@@ -188,12 +199,33 @@ def type_in_answers_quiz():
     term = None
     message = None
     card_to_change = None
+
     list_of_valid_ids = []
     list_of_cards = store_file_as_list_of_lines("list_of_flashcards_in_current_set.txt") # stores all the flashcards as items in a list
 
     list_of_lines = store_file_as_list_of_lines("session_variables.txt")
+    card_to_change_in_change_response = store_file_as_list_of_lines("changed_cards.txt")
+    for card in card_to_change_in_change_response:
+        print_line_number()
+        print (card)
     if list_of_lines[2].strip("\n") != 'null':
         card_to_change = list_of_lines[2].strip("\n")
+    change = change_form.data.get("Change")
+    if change == "I was right" and card_to_change_in_change_response:
+        # "{'Flashcard_2':{'Term': 'Test7', 'Definition': 'Test8', 'Learn Score': 1}}"
+        list_of_final_card_to_change = str(card_to_change_in_change_response).split(":", 1)
+        print_line_number()
+        print(list_of_final_card_to_change)
+        card_to_change = list_of_final_card_to_change[1]
+        final_card_to_change_in_change_response = card_to_change.strip()
+        final_card_to_change_in_change_response = eval(final_card_to_change_in_change_response[:-1])
+        current_learn_score = final_card_to_change_in_change_response["Learn Score"]
+        final_card_to_change_in_change_response["Learn Score"] = current_learn_score + 1
+        final_card_to_change_in_change_response = '"' + list_of_final_card_to_change[0] + ":" + str(final_card_to_change_in_change_response) + '}"'
+        save_to_file(eval(final_card_to_change_in_change_response), "changed_cards.txt")
+    if list_of_lines[2].strip("\n") != 'null':
+        card_to_change = list_of_lines[2].strip("\n")
+
     list_of_flashcard_ids = eval(list_of_lines[0])
     if list_of_flashcard_ids:
         for num in list_of_flashcard_ids:
@@ -226,7 +258,7 @@ def type_in_answers_quiz():
                 next_definition = final_card["Definition"]
                 if next_definition is not None:
                     next_definition = next_definition.strip()
-                answer = request.form.get("Answer")
+                answer = answer_form.data.get("Answer")
                 if answer is not None:
                     answer = answer.strip()
 
@@ -258,7 +290,7 @@ def type_in_answers_quiz():
 
 
 
-    elif not list_of_flashcard_ids:
+    elif not list_of_flashcard_ids and change == None:
         if card_to_change is not None:
             temp_list_of_card_to_change = card_to_change.split(":", 1)
             final_card_to_change = temp_list_of_card_to_change[1]
@@ -268,7 +300,7 @@ def type_in_answers_quiz():
         definition = list_of_lines[1]
         if definition is not None:
             definition = definition.strip()
-        answer = request.form.get("Answer")
+        answer = answer_form.data.get("Answer")
         if answer is not None:
             answer = answer.strip()
 
@@ -286,6 +318,8 @@ def type_in_answers_quiz():
 
 
         if card_to_change is not None:
+            print_line_number()
+            print(final_card_to_change)
             final_card_to_change["Learn Score"] = final_learn_score
             temp_list_of_card_to_change[1] = str(final_card_to_change)
             card_to_change = ":".join(temp_list_of_card_to_change)
@@ -294,6 +328,9 @@ def type_in_answers_quiz():
 
         answer_form.Answer.data = None
         change_form.Change.data = None
+        return render_template("type-in-answers-quiz.html", answer_form=answer_form, term=term, message=message, change_form=change_form)
+    elif not list_of_flashcard_ids and change != None:
+
         return render_template("type-in-answers-quiz.html", answer_form=answer_form, term=term, message=message, change_form = change_form)
     return render_template("type-in-answers-quiz.html", answer_form=answer_form, term=term, message=message, change_form=change_form)
 
@@ -304,6 +341,8 @@ def save_progress():
     name_of_card_set = store_file_as_list_of_lines("session_variables.txt")[3]
     name_of_card_set = name_of_card_set.strip("\n")
     name_of_card_set = name_of_card_set.strip("'")
+    print_line_number()
+    print(card_sets)
     for change in changes:
         change = change.strip("\n")
         change = change[2:-2]
@@ -316,10 +355,35 @@ def save_progress():
         change = change.strip("'")
         change = eval(change)
         card_sets[name_of_card_set][name] = change
+    print_line_number()
+    print(card_sets)
 
+    list_of_cards = (str(card_sets)).split("}}")
+    print_line_number()
+    print(list_of_cards)
+    erase_file("current_flashcard_set.txt")
     erase_file("flashcard_sets.txt")
-    save_to_file(card_sets, "flashcard_sets.txt")
+    with open("flashcard_sets.txt", 'a') as file:
+        file.write("{")
+        file.write("\n")
+    for card in list_of_cards[:-1]:
+        card = card.lstrip("{")
+        card = card.lstrip(",")
+        card = card.lstrip()
+        card = (card.strip('"') + "}},")
+        print_line_number()
+        print(card)
+        with open("flashcard_sets.txt", 'a') as file:
+            file.write(card)
+            file.write("\n")
+    with open("flashcard_sets.txt", 'a') as file:
+        file.write("}")
+
+
+
+    clear_session_variables()
     return redirect(url_for("index"))
+
 @app.route('/multiple-choice-quiz', methods=["GET", "POST"])
 def multiple_choice_quiz():
     return render_template("multiple-choice-quiz.html")
@@ -330,6 +394,7 @@ def clear_session_variables():
     erase_file("list_of_flashcards_in_current_set.txt")
     erase_file("session_variables.txt")
     erase_file("changed_cards.txt")
+
 
 if __name__ == "__main__":
     clear_session_variables()
