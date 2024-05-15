@@ -126,7 +126,8 @@ def choose_quiz():
         save_to_file(list_of_card_ids, "session_variables.txt")
         save_to_file(None, "session_variables.txt")
         save_to_file(None, "session_variables.txt")
-        save_to_file(choice, "session_variables.txt")
+        save_to_file(None, "session_variables.txt")
+        save_to_file(choice.strip("\n"), "session_variables.txt")
         return redirect(url_for("quiz"))
 
     return render_template("choose-quiz.html", form=form)
@@ -205,11 +206,10 @@ def type_in_answers_quiz():
 
     list_of_lines = store_file_as_list_of_lines("session_variables.txt")
     card_to_change_in_change_response = store_file_as_list_of_lines("changed_cards.txt")
+    if card_to_change_in_change_response:
+        card_to_change_in_change_response = card_to_change_in_change_response[-1]
     print_line_number()
     print(card_to_change_in_change_response)
-    for card in card_to_change_in_change_response:
-        print_line_number()
-        print (card)
     if list_of_lines[2].strip("\n") != 'null':
         card_to_change = list_of_lines[2].strip("\n")
     change = change_form.data.get("Change")
@@ -230,11 +230,8 @@ def type_in_answers_quiz():
         print_line_number()
         print(final_card_to_change_in_change_response)
         final_card_to_change_in_change_response = eval(final_card_to_change_in_change_response)
-        current_learn_score = final_card_to_change_in_change_response["Learn Score"]
-        if current_learn_score == 0:
-            final_card_to_change_in_change_response["Learn Score"] = current_learn_score + 1
-        elif current_learn_score > 0:
-            final_card_to_change_in_change_response["Learn Score"] = current_learn_score + 2
+        current_learn_score = int(list_of_lines[3])
+        final_card_to_change_in_change_response["Learn Score"] = current_learn_score + 1
         final_card_to_change_in_change_response =  list_of_final_card_to_change[0].strip('"') + ":" + str(final_card_to_change_in_change_response) + '}'
         print_line_number()
         print(final_card_to_change_in_change_response)
@@ -303,9 +300,12 @@ def type_in_answers_quiz():
                         file.write("\n")
                 list_of_lines[0] = list_of_valid_ids[1:]
                 list_of_lines[1] = next_definition
+                list_of_lines[3] = current_learn_score
 
                 answer_form.Answer.data = None
                 change_form.Change.data = None
+                print_line_number()
+                print(list_of_lines)
                 overwrite_file(list_of_lines, "session_variables.txt")
                 return render_template("type-in-answers-quiz.html", answer_form=answer_form, term=term, message=message, change_form = change_form)
 
@@ -363,7 +363,7 @@ def type_in_answers_quiz():
 def save_progress():
     card_sets = eval(read_file("flashcard_sets.txt").strip())
     changes = store_file_as_list_of_lines("changed_cards.txt")
-    name_of_card_set = store_file_as_list_of_lines("session_variables.txt")[3]
+    name_of_card_set = store_file_as_list_of_lines("session_variables.txt")[4]
     name_of_card_set = name_of_card_set.strip("\n")
     name_of_card_set = name_of_card_set.strip("'")
     print_line_number()
