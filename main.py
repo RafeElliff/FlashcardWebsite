@@ -205,6 +205,8 @@ def type_in_answers_quiz():
 
     list_of_lines = store_file_as_list_of_lines("session_variables.txt")
     card_to_change_in_change_response = store_file_as_list_of_lines("changed_cards.txt")
+    print_line_number()
+    print(card_to_change_in_change_response)
     for card in card_to_change_in_change_response:
         print_line_number()
         print (card)
@@ -213,16 +215,33 @@ def type_in_answers_quiz():
     change = change_form.data.get("Change")
     if change == "I was right" and card_to_change_in_change_response:
         # "{'Flashcard_2':{'Term': 'Test7', 'Definition': 'Test8', 'Learn Score': 1}}"
-        list_of_final_card_to_change = str(card_to_change_in_change_response).split(":", 1)
+        print_line_number()
+        print(card_to_change_in_change_response)
+        card_to_change_in_change_response = str(card_to_change_in_change_response).strip("[")
+        card_to_change_in_change_response = card_to_change_in_change_response.strip("]")
+        list_of_final_card_to_change = card_to_change_in_change_response.split(":", 1)
         print_line_number()
         print(list_of_final_card_to_change)
         card_to_change = list_of_final_card_to_change[1]
         final_card_to_change_in_change_response = card_to_change.strip()
-        final_card_to_change_in_change_response = eval(final_card_to_change_in_change_response[:-1])
+        # final_card_to_change_in_change_response = final_card_to_change_in_change_response.
+        final_card_to_change_in_change_response = final_card_to_change_in_change_response.rstrip('}\\n"')
+        final_card_to_change_in_change_response = final_card_to_change_in_change_response + "}"
+        print_line_number()
+        print(final_card_to_change_in_change_response)
+        final_card_to_change_in_change_response = eval(final_card_to_change_in_change_response)
         current_learn_score = final_card_to_change_in_change_response["Learn Score"]
-        final_card_to_change_in_change_response["Learn Score"] = current_learn_score + 1
-        final_card_to_change_in_change_response = '"' + list_of_final_card_to_change[0] + ":" + str(final_card_to_change_in_change_response) + '}"'
-        save_to_file(eval(final_card_to_change_in_change_response), "changed_cards.txt")
+        if current_learn_score == 0:
+            final_card_to_change_in_change_response["Learn Score"] = current_learn_score + 1
+        elif current_learn_score > 0:
+            final_card_to_change_in_change_response["Learn Score"] = current_learn_score + 2
+        final_card_to_change_in_change_response =  list_of_final_card_to_change[0].strip('"') + ":" + str(final_card_to_change_in_change_response) + '}'
+        print_line_number()
+        print(final_card_to_change_in_change_response)
+        with open("changed_cards.txt", 'a') as file:
+            file.write(final_card_to_change_in_change_response)
+            file.write("\n")
+
     if list_of_lines[2].strip("\n") != 'null':
         card_to_change = list_of_lines[2].strip("\n")
 
@@ -279,7 +298,9 @@ def type_in_answers_quiz():
                     temp_list_of_card_to_change[1] = str(final_card_to_change)
                     card_to_change = ":".join(temp_list_of_card_to_change)
                     card_to_change = card_to_change + "}"
-                    save_to_file(card_to_change, "changed_cards.txt")
+                    with open ("changed_cards.txt", 'a') as file:
+                        file.write(card_to_change)
+                        file.write("\n")
                 list_of_lines[0] = list_of_valid_ids[1:]
                 list_of_lines[1] = next_definition
 
@@ -324,7 +345,11 @@ def type_in_answers_quiz():
             temp_list_of_card_to_change[1] = str(final_card_to_change)
             card_to_change = ":".join(temp_list_of_card_to_change)
             card_to_change = card_to_change + "}"
-            save_to_file(card_to_change, "changed_cards.txt")
+            print_line_number()
+            print(card_to_change)
+            with open("changed_cards.txt", 'a') as file:
+                file.write(card_to_change)
+                file.write("\n")
 
         answer_form.Answer.data = None
         change_form.Change.data = None
@@ -344,8 +369,10 @@ def save_progress():
     print_line_number()
     print(card_sets)
     for change in changes:
+        print_line_number()
+        print(change)
         change = change.strip("\n")
-        change = change[2:-2]
+        change = change[2:-1]
         parts_of_card = change.split(":", 1)
         name = parts_of_card[0]
         change = parts_of_card[1]
@@ -353,6 +380,8 @@ def save_progress():
         name = name.strip("'")
         change = change.strip('"')
         change = change.strip("'")
+        print_line_number()
+        print(change)
         change = eval(change)
         card_sets[name_of_card_set][name] = change
     print_line_number()

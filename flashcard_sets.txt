@@ -1,4 +1,4 @@
 {
-'Test4': {'Number of Cards': 2, 'Flashcard_1': {'Term': 'Test5', 'Definition': 'Test6', 'Learn Score': 1}, 'Flashcard_2': {'Term': 'Test7', 'Definition': 'Test8', 'Learn Score': 4}},
+'Test4': {'Number of Cards': 2, 'Flashcard_1': {'Term': 'Test5', 'Definition': 'Test6', 'Learn Score': 3}, 'Flashcard_2': {'Term': 'Test7', 'Definition': 'Test8', 'Learn Score': 4}},
 'quiz1': {'Number of Cards': 2, 'Flashcard_1': {'Term': 'def1', 'Definition': 'ans1', 'Learn Score': 0}, 'Flashcard_2': {'Term': 'def2', 'Definition': 'ans2', 'Learn Score': 0}},
 }
