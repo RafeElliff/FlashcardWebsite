@@ -1,0 +1,1 @@
+{"Number of Cards": 4, "Flashcard_1": {"Term": "def4", "Definition": "ans4", "Learn Score": 1}, "Flashcard_2": {"Term": "def5", "Definition": "ans5", "Learn Score": 0}, "Flashcard_3": {"Term": "def6", "Definition": "ans6", "Learn Score": 1}, "Flashcard_4": {"Term": "def7", "Definition": "ans7", "Learn Score": 0}}

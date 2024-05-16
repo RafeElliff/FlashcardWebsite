@@ -102,6 +102,7 @@ def get_flashcards_from_dict():
 
 @app.route('/')
 def index():
+    clear_session_variables()
     return render_template("index.html")
 
 
@@ -205,6 +206,7 @@ def type_in_answers_quiz():
     list_of_cards = store_file_as_list_of_lines("list_of_flashcards_in_current_set.txt") # stores all the flashcards as items in a list
 
     list_of_lines = store_file_as_list_of_lines("session_variables.txt")
+    list_of_lines = list_of_lines[:5]
     card_to_change_in_change_response = store_file_as_list_of_lines("changed_cards.txt")
     if card_to_change_in_change_response:
         card_to_change_in_change_response = card_to_change_in_change_response[-1]
@@ -214,7 +216,6 @@ def type_in_answers_quiz():
         card_to_change = list_of_lines[2].strip("\n")
     change = change_form.data.get("Change")
     if change == "I was right" and card_to_change_in_change_response:
-        # "{'Flashcard_2':{'Term': 'Test7', 'Definition': 'Test8', 'Learn Score': 1}}"
         print_line_number()
         print(card_to_change_in_change_response)
         card_to_change_in_change_response = str(card_to_change_in_change_response).strip("[")
@@ -232,7 +233,7 @@ def type_in_answers_quiz():
         final_card_to_change_in_change_response = eval(final_card_to_change_in_change_response)
         current_learn_score = int(list_of_lines[3])
         final_card_to_change_in_change_response["Learn Score"] = current_learn_score + 1
-        final_card_to_change_in_change_response =  list_of_final_card_to_change[0].strip('"') + ":" + str(final_card_to_change_in_change_response) + '}'
+        final_card_to_change_in_change_response = list_of_final_card_to_change[0].strip('"') + ":" + str(final_card_to_change_in_change_response) + '}'
         print_line_number()
         print(final_card_to_change_in_change_response)
         with open("changed_cards.txt", 'a') as file:
@@ -241,6 +242,7 @@ def type_in_answers_quiz():
 
     if list_of_lines[2].strip("\n") != 'null':
         card_to_change = list_of_lines[2].strip("\n")
+
 
     list_of_flashcard_ids = eval(list_of_lines[0])
     if list_of_flashcard_ids:
@@ -289,8 +291,11 @@ def type_in_answers_quiz():
                         final_learn_score = current_learn_score
                 else:
                     message = None
+                    final_learn_score = current_learn_score
 
                 if card_to_change is not None:
+                    print_line_number()
+                    print(final_card_to_change)
                     final_card_to_change["Learn Score"] = final_learn_score
                     temp_list_of_card_to_change[1] = str(final_card_to_change)
                     card_to_change = ":".join(temp_list_of_card_to_change)
@@ -426,7 +431,6 @@ def clear_session_variables():
 
 
 if __name__ == "__main__":
-    clear_session_variables()
     app.run(debug=True)
 
 
