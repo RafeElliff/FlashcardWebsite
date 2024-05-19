@@ -3,23 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
 
-{%if term%}
-{{term}}
-        <form method = "POST", action = "/type-in-answers-quiz">
-            {{answer_form.Answer.label}}
-            {{answer_form.Answer}}
-            {{answer_form.Submit}}
-        </form>
-{%endif%}
+{% if term %}
+{{ term }}
+<form id="answerForm" method="POST" action="/type-in-answers-quiz">
+    {{ answer_form.Answer.label }}
+    {{ answer_form.Answer }}
+    {{ answer_form.Submit }}
+</form>
+{% endif %}
 
-{%if message%}
-{{message}}
-            <button id = changeButton> I was right </button>
-{%endif%}
+{% if message %}
+{{ message }}
+<button id="changeButton">I was right</button>
+{% endif %}
 
-<br> <a href = "/save-progress"> Finish study session</a> </br>
+<br> <a href="/save-progress">Finish study session</a> </br>
+
+<script>
+
+
+    var message = "{{ message }}";
+
+        // Get a reference to the button element
+        var button = document.getElementById("changeButton");
+
+        // Check if the message variable is "correct"
+        if (message === "Correct") {
+            // If the condition is true, disable the button
+            button.disabled = true;
+        }
+
+
+    $(document).ready(function() {
+        $('#changeButton').on('click', function(e) {
+            e.preventDefault(); // Prevent the default action
+            $(this).prop('disabled', true)
+            // Prepare data to send
+            const data = { button_clicked: true }; // You can add any additional data here
+
+            // AJAX request
+            $.ajax({
+                type: 'POST',
+                url: window.location.href, // Send the AJAX request to the current page
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(response) {
+                    console.log('Button submitted successfully:', response);
+                    // Add any success handling here if needed
+                },
+                error: function(error) {
+                    console.log('Error submitting button:', error);
+                    // Add any error handling here if needed
+                }
+            });
+        });
+    });
+</script>
+
 </body>
 </html>

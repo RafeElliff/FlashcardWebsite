@@ -1,6 +1,6 @@
 import json
 import random
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, jsonify
 from forms import NewQuizForm, NewTermsForm, ChooseCardSet, ChooseQuizType, AnswerTypedQuestion, ChangeForm
 import inspect
 
@@ -215,7 +215,9 @@ def type_in_answers_quiz():
     if list_of_lines[2].strip("\n") != 'null':
         card_to_change = list_of_lines[2].strip("\n")
     change = change_form.data.get("Change")
-    if change == "I was right" and card_to_change_in_change_response:
+
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest' and card_to_change_in_change_response:
+        data = request.json
         print_line_number()
         print(card_to_change_in_change_response)
         card_to_change_in_change_response = str(card_to_change_in_change_response).strip("[")
@@ -225,7 +227,6 @@ def type_in_answers_quiz():
         print(list_of_final_card_to_change)
         card_to_change = list_of_final_card_to_change[1]
         final_card_to_change_in_change_response = card_to_change.strip()
-        # final_card_to_change_in_change_response = final_card_to_change_in_change_response.
         final_card_to_change_in_change_response = final_card_to_change_in_change_response.rstrip('}\\n"')
         final_card_to_change_in_change_response = final_card_to_change_in_change_response + "}"
         print_line_number()
@@ -233,12 +234,17 @@ def type_in_answers_quiz():
         final_card_to_change_in_change_response = eval(final_card_to_change_in_change_response)
         current_learn_score = int(list_of_lines[3])
         final_card_to_change_in_change_response["Learn Score"] = current_learn_score + 1
+        print_line_number()
+        print(final_card_to_change_in_change_response)
         final_card_to_change_in_change_response = list_of_final_card_to_change[0].strip('"') + ":" + str(final_card_to_change_in_change_response) + '}'
         print_line_number()
         print(final_card_to_change_in_change_response)
         with open("changed_cards.txt", 'a') as file:
             file.write(final_card_to_change_in_change_response)
             file.write("\n")
+        return jsonify(data)
+
+
 
     if list_of_lines[2].strip("\n") != 'null':
         card_to_change = list_of_lines[2].strip("\n")
@@ -279,7 +285,9 @@ def type_in_answers_quiz():
                 answer = answer_form.data.get("Answer")
                 if answer is not None:
                     answer = answer.strip()
-
+                print_line_number()
+                print(definition)
+                print(answer)
                 if definition == answer:
                     message = "Correct"
                     final_learn_score = current_learn_score + 1

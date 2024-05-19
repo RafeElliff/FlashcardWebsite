@@ -1,5 +1,5 @@
 {
-'Test4': {'Number of Cards': 2, 'Flashcard_1': {'Term': 'Test5', 'Definition': 'Test6', 'Learn Score': 1}, 'Flashcard_2': {'Term': 'Test7', 'Definition': 'Test8', 'Learn Score': 4}},
+'Test4': {'Number of Cards': 2, 'Flashcard_1': {'Term': 'Test5', 'Definition': 'Test6', 'Learn Score': 2}, 'Flashcard_2': {'Term': 'Test7', 'Definition': 'Test8', 'Learn Score': 4}},
 'quiz1': {'Number of Cards': 2, 'Flashcard_1': {'Term': 'def1', 'Definition': 'ans1', 'Learn Score': 0}, 'Flashcard_2': {'Term': 'def2', 'Definition': 'ans2', 'Learn Score': 0}},
-'teiewt': {'Number of Cards': 4, 'Flashcard_1': {'Term': 'def4', 'Definition': 'ans4', 'Learn Score': 1}, 'Flashcard_2': {'Term': 'def5', 'Definition': 'ans5', 'Learn Score': 0}, 'Flashcard_3': {'Term': 'def6', 'Definition': 'ans6', 'Learn Score': 1}, 'Flashcard_4': {'Term': 'def7', 'Definition': 'ans7', 'Learn Score': 0}},
+'teiewt': {'Number of Cards': 4, 'Flashcard_1': {'Term': 'def4', 'Definition': 'ans4', 'Learn Score': 4}, 'Flashcard_2': {'Term': 'def5', 'Definition': 'ans5', 'Learn Score': 3}, 'Flashcard_3': {'Term': 'def6', 'Definition': 'ans6', 'Learn Score': 3}, 'Flashcard_4': {'Term': 'def7', 'Definition': 'ans7', 'Learn Score': 3}},
 }

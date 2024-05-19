@@ -1,6 +1,0 @@
-[3, 2]
-ans5
-{'Flashcard_2': {'Term': 'def5', 'Definition': 'ans5', 'Learn Score': 0}}
-1
-"teiewt"
-
